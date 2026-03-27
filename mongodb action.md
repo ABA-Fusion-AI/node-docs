@@ -4,9 +4,9 @@ title: "MongoDB Action"
 description: "Execute MongoDB operations — find, insert, update, delete, aggregate, and count documents"
 category: "data"
 subcategory: "databases"
-version: "1.0.0"
+version: "1.1.0"
 language: "en"
-last_updated: "2026-03-10"
+last_updated: "2026-03-27"
 author: "Fusion Team"
 tags:
   - mongodb
@@ -43,7 +43,8 @@ The **MongoDB Action** node connects to a MongoDB instance using a connection UR
 - **Projection Support:** Control which fields are returned in query results
 - **Upsert Mode:** Insert or update in a single step with `upsert: true`
 - **Aggregation Pipelines:** Run multi-stage transformations directly on the collection
-- **Field-Pair Input:** Insert and update fields are defined as name/value pairs for UI-friendly configuration
+- **Key-Value Record Input:** Insert and update data are defined as key-value objects (`Record<string, unknown>`), with full expression support for dynamic variables from previous nodes
+- **Expression Support:** All parameter fields support dynamic expressions (`metadata: { expression: true }`), enabling data to flow from upstream nodes
 
 ### Use Cases
 
@@ -94,62 +95,74 @@ The **MongoDB Action** node connects to a MongoDB instance using a connection UR
 
 ### Operation: Find
 
+> UI label: **Parameters**
+
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `findParams.filter` | `JSON object` | ❌ No | MongoDB filter (defaults to `{}` — all documents) |
-| `findParams.projection` | `JSON object` | ❌ No | Fields to include or exclude |
-| `findParams.sort` | `JSON object` | ❌ No | Sort order (e.g. `{ "createdAt": -1 }`) |
-| `findParams.limit` | `number` | ❌ No | Maximum number of documents to return |
-| `findParams.skip` | `number` | ❌ No | Number of documents to skip (pagination) |
+| `findParams.filter` | `JSON object` | ❌ No | MongoDB filter (defaults to `{}` — all documents). Supports expressions |
+| `findParams.projection` | `JSON object` | ❌ No | Fields to include or exclude. Supports expressions |
+| `findParams.sort` | `JSON object` | ❌ No | Sort order (e.g. `{ "createdAt": -1 }`). Supports expressions |
+| `findParams.limit` | `number` | ❌ No | Maximum number of documents to return. Supports expressions |
+| `findParams.skip` | `number` | ❌ No | Number of documents to skip (pagination). Supports expressions |
 
 ### Operation: Find One
 
+> UI label: **Parameters**
+
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `findOneParams.filter` | `JSON object` | ✅ Yes | MongoDB filter to identify the document |
-| `findOneParams.projection` | `JSON object` | ❌ No | Fields to include or exclude |
+| `findOneParams.filter` | `JSON object` | ✅ Yes | MongoDB filter to identify the document. Supports expressions |
+| `findOneParams.projection` | `JSON object` | ❌ No | Fields to include or exclude. Supports expressions |
 
 ### Operation: Insert One
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `insertOneParams` | `array` | ✅ Yes | Document fields as `[{ fieldName, fieldValue }]` |
+| `insertOneData` | `Record<string, unknown>` | ✅ Yes | Document as a key-value object (e.g. `{ "name": "Alice", "age": 30 }`). Supports expressions for dynamic values from previous nodes. UI label: **Data** |
 
 ### Operation: Insert Many
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `insertManyParams` | `array of arrays` | ✅ Yes | Each document as `[{ fieldName, fieldValue }]`, grouped in an outer array |
+| `insertManyData` | `Array<Record<string, unknown>>` | ✅ Yes | Array of documents, each as a key-value object (e.g. `[{ "name": "Alice" }, { "name": "Bob" }]`). Supports expressions. UI label: **Data** |
 
 ### Operation: Update One / Update Many
 
+> UI label: **Filter & Data**
+
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `updateOneParams.filter` | `JSON object` | ✅ Yes | Filter to identify document(s) |
-| `updateOneParams.update` | `array` | ✅ Yes | Fields to update: `[{ fieldName, fieldValue }]` (applied via `$set`) |
+| `updateOneParams.filter` | `JSON object` | ✅ Yes | Filter to identify document(s). Supports expressions |
+| `updateOneParams.update` | `Record<string, unknown>` | ✅ Yes | Fields to update as a key-value object (e.g. `{ "status": "active" }`). Applied via `$set`. Supports expressions. UI label: **Data** |
 | `updateOneParams.upsert` | `boolean` | ❌ No | Insert document if no match is found (default: `false`) |
 
 > `updateManyParams` uses the same structure as `updateOneParams`.
 
 ### Operation: Delete One / Delete Many
 
+> UI label: **Delete Parameters**
+
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `deleteOneParams.filter` | `JSON object` | ✅ Yes | Filter to identify document(s) to delete |
+| `deleteOneParams.filter` | `JSON object` | ✅ Yes | Filter to identify document(s) to delete. Supports expressions |
 
 > `deleteManyParams` uses the same structure as `deleteOneParams`.
 
 ### Operation: Aggregate
 
+> UI label: **Aggregate Parameters**
+
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `aggregateParams.pipeline` | `JSON array` | ✅ Yes | Aggregation pipeline stages (e.g. `[{ "$match": {...} }, { "$group": {...} }]`) |
+| `aggregateParams.pipeline` | `JSON array` | ✅ Yes | Aggregation pipeline stages (e.g. `[{ "$match": {...} }, { "$group": {...} }]`). Supports expressions |
 
 ### Operation: Count
 
+> UI label: **Count Parameters**
+
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `countParams.filter` | `JSON object` | ❌ No | Filter to count matching documents (defaults to `{}`) |
+| `countParams.filter` | `JSON object` | ❌ No | Filter to count matching documents (defaults to `{}`). Supports expressions |
 
 <!-- /SECTION: configuration -->
 
@@ -303,7 +316,7 @@ Retrieve a single document by its `_id`.
   "collection": "orders",
   "operation": "Find One",
   "findOneParams": {
-    "filter": { "_id": { "$oid": "664a1f2b3c4d5e6f7a8b9c0d" } }
+    "filter": { "_id": "objectid(664a1f2b3c4d5e6f7a8b9c0d)" }
   }
 }
 ```
@@ -321,12 +334,12 @@ Insert a new event log entry.
   "database": "logs",
   "collection": "events",
   "operation": "Insert One",
-  "insertOneParams": [
-    { "fieldName": "type", "fieldValue": "user_login" },
-    { "fieldName": "userId", "fieldValue": "{{input.userId}}" },
-    { "fieldName": "ip", "fieldValue": "{{input.ip}}" },
-    { "fieldName": "timestamp", "fieldValue": "{{new Date().toISOString()}}" }
-  ]
+  "insertOneData": {
+    "type": "user_login",
+    "userId": "{{outputs.Function.success.id}}",
+    "ip": "{{outputs.Function.success.ip}}",
+    "timestamp": "{{new Date().toISOString()}}"
+  }
 }
 ```
 
@@ -353,11 +366,11 @@ Update a user's last seen timestamp, creating the document if it does not exist.
   "collection": "sessions",
   "operation": "Update One",
   "updateOneParams": {
-    "filter": { "userId": "{{input.userId}}" },
-    "update": [
-      { "fieldName": "lastSeen", "fieldValue": "{{new Date().toISOString()}}" },
-      { "fieldName": "active", "fieldValue": "true" }
-    ],
+    "filter": { "userId": "{{outputs.Function.success.userId}}" },
+    "update": {
+      "lastSeen": "{{new Date().toISOString()}}",
+      "active": true
+    },
     "upsert": true
   }
 }
@@ -471,7 +484,7 @@ Fetch data from an external API and store each item as a MongoDB document.
       "type": "function",
       "position": { "x": 300, "y": 100 },
       "config": {
-        "code": "return input.data.map(p => [{ fieldName: 'sku', fieldValue: p.sku }, { fieldName: 'name', fieldValue: p.name }, { fieldName: 'price', fieldValue: String(p.price) }]);"
+        "code": "return input.data.map(p => ({ sku: p.sku, name: p.name, price: p.price }));"
       }
     },
     {
@@ -483,7 +496,7 @@ Fetch data from an external API and store each item as a MongoDB document.
         "database": "catalog",
         "collection": "products",
         "operation": "Insert Many",
-        "insertManyParams": "{{input}}"
+        "insertManyData": "{{input}}"
       }
     }
   ]
@@ -531,11 +544,17 @@ Fetch data from an external API and store each item as a MongoDB document.
 
 **Solution:** Check your filter conditions. Use a Function node after Find One to handle the null case gracefully.
 
-#### `insertOneParams` must be an array error
+#### `insertOneData must be a record` error
 
-**Cause:** The field was provided as an object instead of an array of `{ fieldName, fieldValue }` pairs.
+**Cause:** The `insertOneData` field was not provided as a valid key-value object.
 
-**Solution:** Provide `insertOneParams` as an array: `[{ "fieldName": "name", "fieldValue": "Alice" }]`.
+**Solution:** Provide `insertOneData` as a key-value object: `{ "name": "Alice", "email": "alice@example.com" }`.
+
+#### Dynamic variables insert `undefined` values
+
+**Cause:** The field does not have expression mode enabled, preventing dynamic data from previous nodes from being resolved.
+
+**Solution:** Ensure that the field has `expression: true` in its metadata configuration. In the UI, verify that the expression toggle is enabled for fields that receive data from upstream nodes. All Insert and Update data fields now use `Record<string, unknown>` format with expression support enabled by default.
 
 ### Error Codes
 
@@ -566,6 +585,7 @@ Fetch data from an external API and store each item as a MongoDB document.
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1.0 | 2026-03-27 | **Breaking:** Renamed `insertOneParams` → `insertOneData` (key-value object instead of fieldName/fieldValue array). Renamed `insertManyParams` → `insertManyData` (array of key-value objects). Changed `updateOneParams.update` and `updateManyParams.update` from fieldName/fieldValue arrays to key-value objects (`Record<string, unknown>`). Added `expression: true` metadata on all parameter fields to support dynamic variables from upstream nodes. Fixed bug where dynamic variables resolved to `undefined` in Update One operations. |
 | 1.0.0 | 2026-03-10 | Initial release |
 
 <!-- /SECTION: changelog -->

@@ -4,9 +4,9 @@ title: "PostgreSQL Action"
 description: "Execute PostgreSQL operations — select, insert, update, upsert, delete, and raw SQL queries with schema support"
 category: "data"
 subcategory: "databases"
-version: "1.0.0"
+version: "1.1.0"
 language: "en"
-last_updated: "2026-03-10"
+last_updated: "2026-03-27"
 author: "Fusion Team"
 tags:
   - postgres
@@ -45,6 +45,7 @@ The **PostgreSQL Action** node connects to a PostgreSQL server using a connectio
 - **Upsert via `ON CONFLICT`:** Uses `EXCLUDED` pseudo-table for conflict resolution
 - **Cascade Option:** `TRUNCATE` and `DROP` support the `CASCADE` flag
 - **Null Handling:** Optionally replace empty strings with `NULL` on write operations
+- **SSL Support:** Enable secure connections with a single toggle — required for cloud-hosted PostgreSQL instances
 - **Connection Pooling:** Uses `pg.Pool` for efficient, reusable connections
 
 ### Use Cases
@@ -73,6 +74,7 @@ The **PostgreSQL Action** node connects to a PostgreSQL server using a connectio
 | `password` | `string` | ✅ Yes | — | PostgreSQL password |
 | `database` | `string` | ✅ Yes | — | Target database name |
 | `schemaName` | `string` | ❌ No | `public` | Schema containing the target table |
+| `ssl` | `boolean` | ❌ No | `false` | Enable SSL connection. When `true`, connects with `{ rejectUnauthorized: false }`. Required for cloud-hosted databases (e.g. Azure, AWS RDS, Supabase) that enforce encrypted connections |
 | `connectionTimeoutMillis` | `number` | ❌ No | `5000` | Connection timeout in milliseconds |
 
 ### Common Parameters
@@ -253,6 +255,7 @@ Query up to 50 active users from the `analytics` schema, sorted by creation date
   "user": "app_user",
   "password": "secret",
   "database": "myapp",
+  "ssl": true,
   "schemaName": "analytics",
   "tableName": "users",
   "operation": "Select",
@@ -508,6 +511,12 @@ Run every night to delete expired sessions from the database.
 
 **Solution:** Provide a WHERE condition. Use `Truncate` to clear all rows, or `Drop` to remove the entire table.
 
+#### `connection is insecure (try using sslmode=require)` error
+
+**Cause:** The PostgreSQL server requires an encrypted (SSL/TLS) connection, but the node is connecting without SSL.
+
+**Solution:** Set the `ssl` parameter to `true` in the node configuration. This enables SSL with `rejectUnauthorized: false`, which is compatible with most cloud providers (Azure Database for PostgreSQL, AWS RDS, Supabase, etc.). Note: this parameter is separate from any `sslmode` value in a connection string — the node uses its own `ssl` boolean toggle.
+
 #### `conflictColumns is required` on Upsert
 
 **Cause:** `insertOrUpdateParams.conflictColumns` is empty or missing.
@@ -523,6 +532,7 @@ Run every night to delete expired sessions from the database.
 | `42P01` | Relation does not exist | Check `schemaName` and `tableName` |
 | `23505` | Unique violation | Use `Insert or Update` or enable `skipOnConflict` |
 | `42601` | SQL syntax error | Check the raw SQL in `executeQueryParams.query` |
+| `XX000` | Connection is insecure / sslmode=require | Set `ssl: true` in the node connection parameters |
 
 <!-- /SECTION: troubleshooting -->
 
@@ -544,6 +554,7 @@ Run every night to delete expired sessions from the database.
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1.0 | 2026-03-27 | Added `ssl` connection parameter (`boolean`, default `false`). When enabled, connects with `{ rejectUnauthorized: false }` for compatibility with cloud-hosted PostgreSQL. Fixed `connection is insecure (sslmode=require)` error. Added SSL troubleshooting section. |
 | 1.0.0 | 2026-03-10 | Initial release |
 
 <!-- /SECTION: changelog -->
