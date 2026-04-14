@@ -57,3 +57,8 @@ iothub-d2c-trigger.md
 iothub-c2d.md
 iothub-device-invoke.md
 parse-base64.md
+YouTubeChannelNode.md
+YouTubeVideoNode.md
+YouTubePlaylistNode.md
+YouTubeVideoCategoryNode.md
+YouTubePlaylistItemNode.md
