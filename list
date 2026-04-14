@@ -57,3 +57,14 @@ iothub-d2c-trigger.md
 iothub-c2d.md
 iothub-device-invoke.md
 parse-base64.md
+salesforce.account.md
+salesforce.attachment.md
+salesforce.case.md
+salesforce.contact.md
+salesforce.document.md
+salesforce.einstein.md
+salesforce.flow.md
+salesforce.lead.md
+salesforce.opportunity.md
+salesforce.search.md
+salesforce.user.md
