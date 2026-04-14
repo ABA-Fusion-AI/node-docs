@@ -57,3 +57,7 @@ iothub-d2c-trigger.md
 iothub-c2d.md
 iothub-device-invoke.md
 parse-base64.md
+supabase.get-many.md
+supabase.insert-documents.md
+supabase.vector-store-chain.md
+supabase.vector-store-tool.md
