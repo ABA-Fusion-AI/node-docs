@@ -1,18 +1,44 @@
-# Salesforce Search Node
+---
+node_id: "salesforce-search"
+title: "Salesforce - Search"
+description: "Query Salesforce using SOQL, SOSL, or parameterized search"
+category: "integrations"
+subcategory: "salesforce"
+version: "1.0.0"
+language: "en"
+last_updated: "2026-04-15"
+author: "Fusion Team"
+tags:
+  - integration
+  - salesforce
+  - search
+  - soql
+related_nodes:
+  - salesforce-account
+  - salesforce-contact
+---
+
+# Salesforce - Search
+
+> **Category:** Integrations | **Type:** Action Node
 
 Node class: `SalesforceSearchNode`
 
-## Operations
+Operations: `soql`, `sosl`, `parameterized`.
 
-- `soql`
-- `sosl`
-- `parameterized`
+## Configuration
 
-## Key Required Fields
+Auth: provide `authType` with either `accessToken` credentials or username/password credentials.
+
+Key params:
 
 - `soql`: `soqlQuery`
 - `sosl`: `soslQuery`
 - `parameterized`: `searchTerm`
+
+Outputs:
+
+- Salesforce query results in normalized record arrays
 
 ## Examples
 

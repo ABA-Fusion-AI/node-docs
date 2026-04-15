@@ -1,25 +1,47 @@
-# Salesforce Contact Node
+---
+node_id: "salesforce-contact"
+title: "Salesforce - Contact"
+description: "Manage Salesforce Contact records with create, update, upsert, fetch, delete, note, and summary operations"
+category: "integrations"
+subcategory: "salesforce"
+version: "1.0.0"
+language: "en"
+last_updated: "2026-04-15"
+author: "Fusion Team"
+tags:
+  - integration
+  - salesforce
+  - contact
+  - crm
+related_nodes:
+  - salesforce-account
+  - salesforce-lead
+---
+
+# Salesforce - Contact
+
+> **Category:** Integrations | **Type:** Action Node
 
 Node class: `SalesforceContactNode`
 
-## Operations
+Operations: `create`, `update`, `upsert`, `get`, `getAll`, `delete`, `addNote`, `getSummary`.
 
-- `create`
-- `update`
-- `upsert`
-- `get`
-- `getAll`
-- `delete`
-- `addNote`
-- `getSummary`
+## Configuration
 
-## Key Required Fields
+Auth: provide `authType` with either `accessToken` credentials or username/password credentials.
+
+Key params:
 
 - `create`: `createLastName`
 - `update`: `contactId` and at least one updatable field
 - `upsert`: `externalIdField`, `externalIdValue`
 - `get`/`delete`: `contactId`
 - `addNote`: `contactId`, `noteTitle`
+
+Outputs:
+
+- Standard Salesforce REST payload for contact operations
+- Summary payload for `getSummary`
 
 ## Example
 
