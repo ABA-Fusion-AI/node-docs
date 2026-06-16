@@ -1,10 +1,10 @@
 ---
 node_id: "filter"
 title: "Filter"
-description: "Keep only the items in a list that satisfy a JavaScript condition."
+description: "Keep only the items in a list that satisfy a JavaScript condition. The list can come from the node input or a config-defined array."
 category: "utilities"
 subcategory: "data"
-version: "2.0.0"
+version: "2.1.0"
 language: "en"
 last_updated: "2026-06-16"
 author: "Fusion Team"
@@ -36,12 +36,18 @@ Keep only the items in a list that satisfy a JavaScript condition. The Filter no
 <!-- SECTION: overview -->
 ## Overview
 
-The **Filter** node takes an **array** as input and evaluates a small JavaScript **condition** against each item. Items for which the condition is *truthy* are kept; the rest are dropped. The result is a new, filtered array emitted on the `success` output.
+The **Filter** node evaluates a small JavaScript **condition** against each item in a **list**. Items for which the condition is *truthy* are kept; the rest are dropped. The result is a new, filtered array emitted on the `success` output.
 
-> ⚠️ **The Filter node only works on arrays/lists.** If the input is not an array (an object, string, number, `null`, etc.), the node emits a descriptive error on the `error` output instead of filtering. Use the [Function](./function.md) node if you need to transform or gate a single value.
+The list to filter can come from two places, controlled by the **Input Source** setting:
+
+- **Node Input** (default): the array arriving from the previous node.
+- **Config List**: a fixed array you define directly in the node's config.
+
+> ⚠️ **The Filter node only works on arrays/lists.** If the selected source is not an array (an object, string, number, `null`, etc.), the node emits a descriptive error on the `error` output instead of filtering. Use the [Function](./function.md) node if you need to transform or gate a single value.
 
 ### Key Features
 
+- **Two input sources:** Filter the incoming data, or a list defined right in the config.
 - **Per-item evaluation:** Your condition runs once per item, just like `Array.prototype.filter`.
 - **Familiar callback variables:** Access `item`, `index`, and `array` inside the condition.
 - **Sandboxed execution:** Conditions run in an isolated VM (2-second timeout, 128 MB limit).
@@ -123,7 +129,11 @@ Any JavaScript truthy value keeps the item; any falsy value (`false`, `0`, `""`,
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
+| `inputSource` | `enum` | ❌ No | `Node Input` | Where to read the list from: `Node Input` (the data arriving from the previous node) or `Config List` (the `items` array defined below). |
+| `items` | `any[]` | ❌ No | `[]` | The list of items to filter. **Only shown/used when `inputSource` is `Config List`.** |
 | `condition` | `string` | ❌ No | `item.value > 0;` | JavaScript expression evaluated per item. Truthy keeps the item, falsy drops it. |
+
+> 💡 The **`items`** field only appears in the editor when **Input Source** is set to **`Config List`**. When **Input Source** is **`Node Input`**, the field is hidden and the node filters whatever array arrives on the `input` port.
 
 ### Condition Guidelines
 
@@ -149,7 +159,9 @@ item.active === true;
 
 | Input | Type | Description |
 |-------|------|-------------|
-| `input` | `any[]` | The array of items to filter. **Must be an array.** |
+| `input` | `any[]` | The array of items to filter when `inputSource` is `Node Input`. **Must be an array.** |
+
+> ℹ️ **The node always fires on an incoming `input` event**, regardless of the source setting. In `Config List` mode the incoming payload is ignored (the configured `items` are filtered instead), but an upstream signal is still what triggers the node. Connect a trigger/previous node to the `input` port even when filtering a config list.
 
 ### Outputs
 
@@ -305,6 +317,35 @@ item > 10;
 
 **Output (success):** `[11, 25]`
 
+---
+
+### Example: Filtering a Config List
+
+Filter a fixed list defined in the node itself, ignoring the incoming payload. Set **Input Source** to `Config List` and fill in the `items` array.
+
+**Configuration:**
+```json
+{
+  "inputSource": "Config List",
+  "items": [
+    { "name": "Alice", "active": true },
+    { "name": "Bob", "active": false },
+    { "name": "Carol", "active": true }
+  ],
+  "condition": "item.active === true;"
+}
+```
+
+Any incoming `input` event triggers the node; its payload is ignored.
+
+**Output (success):**
+```json
+[
+  { "name": "Alice", "active": true },
+  { "name": "Carol", "active": true }
+]
+```
+
 <!-- /SECTION: examples -->
 
 ---
@@ -366,11 +407,13 @@ Fetch a list of orders, keep only the large ones, then iterate over the result t
 
 ### Common Issues
 
-#### "Filter node expects an array of items as input, but received object."
+#### "Filter node expects an array of items as input/in the config, but received object."
 
-**Cause:** The input was not an array (it was an object, string, number, or `null`).
+**Cause:** The selected source was not an array (it was an object, string, number, or `null`). The message says `as input` for `Node Input` mode and `in the config` for `Config List` mode.
 
-**Solution:** Make sure the upstream node outputs an array. If your data is nested (e.g. `{ "data": [ ... ] }`), use a [Function](./function.md) node first to return the inner array (`return input.data;`), then feed it into the Filter node.
+**Solution (Node Input):** Make sure the upstream node outputs an array. If your data is nested (e.g. `{ "data": [ ... ] }`), use a [Function](./function.md) node first to return the inner array (`return input.data;`), then feed it into the Filter node.
+
+**Solution (Config List):** Ensure the `items` field is a proper array. (It defaults to `[]`, so this normally only happens if it was overridden with a non-array value.)
 
 #### The output is an empty array
 
@@ -421,6 +464,7 @@ Fetch a list of orders, keep only the large ones, then iterate over the result t
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.1.0 | 2026-06-16 | Added `inputSource` (`Node Input` / `Config List`) and a config-defined `items` list. The `items` field is shown only when `inputSource` is `Config List`. |
 | 2.0.0 | 2026-06-16 | Filter now operates per-item over arrays (like `Array.filter`); non-array input emits an error. Added `item`, `index`, and `array` to the condition context. |
 | 1.0.0 | 2026-01-31 | Initial release (single-value condition gate). |
 
