@@ -371,6 +371,7 @@ return {
 - [Filter](./filter.md) - Simple condition-based filtering
 - [Set Variable](./set-variable.md) - Store values in workflow variables
 - [Switch](./switch.md) - Conditional routing
+- [Using Expressions](./expressions.md) - Reference outputs, variables, and secrets in input fields
 
 <!-- /SECTION: related -->
 

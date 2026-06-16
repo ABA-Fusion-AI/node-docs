@@ -118,6 +118,12 @@ item.score >= threshold;   // this final expression is the result
 
 Any JavaScript truthy value keeps the item; any falsy value (`false`, `0`, `""`, `null`, `undefined`, `NaN`) drops it. Conditions don't have to be strict booleans — for example, `item.email` keeps items that have a non-empty email.
 
+### Referencing other nodes, variables, and secrets
+
+Alongside `item`/`index`/`array`, the condition can read previous node outputs, workflow variables, and secrets via `outputs`, `variables`, and `secrets`.
+
+> 📘 For the full rules — how `outputs` is keyed by node label, and why labels with spaces or special characters must use bracket-and-quote notation like `outputs["some node label with space in the name"]` — see the **[Using Expressions](./expressions.md)** guide.
+
 <!-- /SECTION: how-it-works -->
 
 ---
