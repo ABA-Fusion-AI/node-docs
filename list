@@ -57,3 +57,30 @@ iothub-d2c-trigger.md
 iothub-c2d.md
 iothub-device-invoke.md
 parse-base64.md
+airtable action.md
+airtable trigger.md
+baserow.md
+crypto.md
+discord action.md
+discord trigger.md
+event-hub-admin.md
+event-hub-receive.md
+event-hub-send.md
+github.md
+gitlab.md
+jenkins.md
+jira.md
+kafka publish.md
+kafka trigger.md
+medifus.md
+mongodb action.md
+mysql action.md
+postgres action.md
+rabbitmq action.md
+rabbitmq trigger.md
+redis-subscribe.md
+redis.md
+signalr-receive.md
+signalr.md
+slack-action.md
+slack-trigger.md
